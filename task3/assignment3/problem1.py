@@ -73,8 +73,10 @@ def compute_criterion(I_xx, I_yy, I_xy, sigma):
         criterion: (h, w) np.array of scaled determinant of Hessian matrix
     """
 
+    I_xx = np.array(I_xx, dtype=float)
+    I_yy = np.array(I_yy, dtype=float)
     I_xy = np.array(I_xy, dtype=float)
-    return sigma * (I_xx * I_yy - np.square(I_xy))
+    return sigma**4 * (I_xx * I_yy - np.square(I_xy))
 
 
 
@@ -94,7 +96,6 @@ def nonmaxsuppression(criterion, threshold):
     # TODO: why is no value above threshold after maximum_filter
     criterion = np.array(criterion, dtype=float)
     img = scipy.ndimage.maximum_filter(criterion, size=5, mode='mirror')
-    threshold = 4.15e-4
     rows = []
     cols = []
 
