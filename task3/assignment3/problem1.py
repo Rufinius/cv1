@@ -50,8 +50,12 @@ def compute_hessian(img, gauss, fx, fy):
     img = scipy.ndimage.convolve(img, gauss, mode='mirror')
     f2x = np.array([[1, -2, 1]])
     f2y = f2x.T
-    I_xx = scipy.ndimage.convolve(img, f2x, mode='mirror')
-    I_yy = scipy.ndimage.convolve(img, f2y, mode='mirror')
+    #I_xx = scipy.ndimage.convolve(img, f2x, mode='mirror')
+    #I_yy = scipy.ndimage.convolve(img, f2y, mode='mirror')
+    I_xx = scipy.ndimage.convolve(img, fx, mode='mirror')
+    I_xx = scipy.ndimage.convolve(img, fx, mode='mirror')
+    I_yy = scipy.ndimage.convolve(img, fy, mode='mirror')
+    I_yy = scipy.ndimage.convolve(img, fy, mode='mirror')
     I_xy = scipy.ndimage.convolve(img, fx, mode='mirror')
     I_xy = scipy.ndimage.convolve(I_xy, fy, mode='mirror')
 
@@ -92,16 +96,14 @@ def nonmaxsuppression(criterion, threshold):
             cols: (n,) np.array with x-positions of interest points
     """
 
-    # TODO: how to allow multiple maxima in one window
-    # TODO: why is no value above threshold after maximum_filter
     criterion = np.array(criterion, dtype=float)
-    img = scipy.ndimage.maximum_filter(criterion, size=5, mode='mirror')
+    img = scipy.ndimage.maximum_filter(criterion, size=(5,5), mode='mirror')
     rows = []
     cols = []
 
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
-            if img[i,j] > threshold:
+            if img[i,j] == criterion[i,j] and img[i,j] > threshold:
                 rows.append(i)
                 cols.append(j)
 
