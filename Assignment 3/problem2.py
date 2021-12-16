@@ -14,14 +14,13 @@ class Problem2:
             distances: (n, m) numpy array, pairwise distances
         """
         # initialise distance matrix
-        distances = np.zeros((features1.shape[1], features2.shape[1]))
+        distances = np.zeros((features2.shape[1], features1.shape[1]))
         # iterate through all pairs of features
         for m in range(features1.shape[1]):
             for n in range(features2.shape[1]):
                 # compute squared euclidean distance as given in the task description
-                distances[m, n] = np.linalg.norm(features1[:, m] - features2[:, n])**2
+                distances[n, m] = (np.linalg.norm(features1[:, m] - features2[:, n]))**2
         return distances
-
 
     def find_matches(self, p1, p2, distances):
         """ Find pairs of corresponding interest points given the
@@ -150,7 +149,7 @@ class Problem2:
             A[2*l+1, 2] = -1
             A[2*l+1, 6] = p1[l, 0] * p2[l, 0]
             A[2*l+1, 7] = p1[l, 1] * p2[l, 0]
-            A[2*l+1, 8] = p2[l, 1]
+            A[2*l+1, 8] = p2[l, 0]
 
         # perform SVD
         u, s, vh = np.linalg.svd(A)
@@ -292,15 +291,15 @@ class Problem2:
         # run ransac algorithm for n_iters
         for n in range(n_iters):
             # random sample of k points
-            # use cartesian coordinates (we know that third entry is 1 so can just ignore and dont need to normalize)
+            # use cartesian coordinates (we know that third entry is 1 so can just ignore -> already normalized)
             sample1, sample2 = self.pick_samples(p1[:, :2], p2[:, :2], k)
 
             # compute homography
             temp_H, temp_HC = self.compute_homography(sample1, sample2, T1, T2)
 
             # compute distances
-            dist = self.compute_homography_distance(temp_HC, p1[:, :2], p2[:, :2])
-            #dist = self.compute_homography_distance(temp_H, pairs[:, :2], pairs[:, 2:4])
+            #dist = self.compute_homography_distance(temp_HC, p1[:, :2], p2[:, :2])
+            dist = self.compute_homography_distance(temp_H, pairs[:, :2], pairs[:, 2:4])
             # evaluate homography
             tmp_N, tmp_inliers = self.find_inliers(pairs, dist, threshold)
 
