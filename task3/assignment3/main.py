@@ -72,12 +72,14 @@ def problem2():
         for i in range(pairs.shape[0]):
             plt.scatter(x=pairs[i,0], y=pairs[i,1], color=colors[i])
             plt.scatter(x=pairs[i,2]+shift, y=pairs[i,3], color=colors[i])
+        plt.show()
 
     def show_image(im, title=""):
         plt.figure()
         plt.title(title)
         plt.imshow(im, "gray", interpolation=None)
         plt.axis("off")
+        plt.show()
 
     def stitch_images(im1, im2, H):
         h, w = im1.shape
@@ -118,6 +120,7 @@ def problem2():
     distances = P2.euclidean_square_dist(features1,features2)
     pairs = P2.find_matches(keypoints1, keypoints2, distances)
     show_matches(im1, im2, pairs)
+    plt.plot()
 
     # Compute homography matrix via ransac
     n_iters = P2.ransac_iters(p, k, z)
@@ -134,5 +137,5 @@ def problem2():
 
 
 if __name__ == "__main__":
-    problem1()
-    #problem2()
+    #problem1()
+    problem2()

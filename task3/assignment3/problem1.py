@@ -46,16 +46,16 @@ def compute_hessian(img, gauss, fx, fy):
         I_yy: (h, w) np.array of 2nd derivatives in y direction
         I_xy: (h, w) np.array of 2nd derivatives in x-y direction
     """
-    img = np.array(img, dtype=float)
+    #img = np.array(img, dtype=float)
     img = scipy.ndimage.convolve(img, gauss, mode='mirror')
     f2x = np.array([[1, -2, 1]])
     f2y = f2x.T
     #I_xx = scipy.ndimage.convolve(img, f2x, mode='mirror')
     #I_yy = scipy.ndimage.convolve(img, f2y, mode='mirror')
     I_xx = scipy.ndimage.convolve(img, fx, mode='mirror')
-    I_xx = scipy.ndimage.convolve(img, fx, mode='mirror')
+    I_xx = scipy.ndimage.convolve(I_xx, fx, mode='mirror')
     I_yy = scipy.ndimage.convolve(img, fy, mode='mirror')
-    I_yy = scipy.ndimage.convolve(img, fy, mode='mirror')
+    I_yy = scipy.ndimage.convolve(I_yy, fy, mode='mirror')
     I_xy = scipy.ndimage.convolve(img, fx, mode='mirror')
     I_xy = scipy.ndimage.convolve(I_xy, fy, mode='mirror')
 
@@ -80,7 +80,8 @@ def compute_criterion(I_xx, I_yy, I_xy, sigma):
     I_xx = np.array(I_xx, dtype=float)
     I_yy = np.array(I_yy, dtype=float)
     I_xy = np.array(I_xy, dtype=float)
-    return sigma**4 * (I_xx * I_yy - np.square(I_xy))
+
+    return (sigma**4 * (I_xx * I_yy - np.square(I_xy)))
 
 
 
