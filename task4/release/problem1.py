@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.linalg import null_space
 
 
 def condition_points(points):
@@ -32,10 +33,13 @@ def enforce_rank2(A):
         A_hat: (3, 3) numpy array, matrix with rank at most 2
     """
 
-    #
-    # You code here
-    #
+    U, D, V = np.linalg.svd(A)
+    D[2] = 0
+    diag = np.zeros((3,3))
+    np.fill_diagonal(diag, D)
+    F = U @ diag @ V
 
+    return F
 
 
 def compute_fundamental(p1, p2):
@@ -48,9 +52,23 @@ def compute_fundamental(p1, p2):
         F: (3, 3) numpy array, fundamental matrix
     """
 
-    #
-    # You code here
-    #
+    A = np.zeros((p1.shape[0], 9))
+    for i in range(p1.shape[0]):
+        A[i, 0] = p1[i, 0] * p2[i, 0]
+        A[i, 1] = p1[i, 1] * p2[i, 0]
+        A[i, 2] = p2[i, 0]
+        A[i, 3] = p1[i, 0] * p2[i, 1]
+        A[i, 4] = p1[i, 1] * p2[i, 1]
+        A[i, 5] = p2[i ,1]
+        A[i, 6] = p1[i, 0]
+        A[i, 7] = p1[i, 1]
+        A[i, 8] = 1
+
+    U, S, V = np.linalg.svd(A)
+    F = V[-1]
+    F = F.reshape((3,3))
+
+    return enforce_rank2(F)
 
 
 
@@ -65,9 +83,12 @@ def eight_point(p1, p2):
         F: (3, 3) numpy array, fundamental matrix with respect to the unconditioned coordinates
     """
 
-    #
-    # You code here
-    #
+    ps1, T1 = condition_points(p1)
+    ps2, T2 = condition_points(p2)
+
+    F_cond = compute_fundamental(ps1, ps2)
+
+    return T2.T @ F_cond @ T1
 
 
 
@@ -85,10 +106,21 @@ def draw_epipolars(F, p1, img):
             at the image borders
     """
 
-    #
-    # You code here
-    #
+    p_h = np.concatenate([p1, np.ones((p1.shape[0], 1))], axis=1)
+    lines = []
+    X1 = [0]*p_h.shape[0]
+    Y1 = []
+    X2 = [img.shape[1]]*p_h.shape[0]
+    Y2 = []
+    for i in range(p_h.shape[0]):
+        lines.append(F @ p_h[i])
+        # lines[i][0] = lines[i][0] / lines[i][2]
+        # lines[i][1] = lines[i][1] / lines[i][2]
+        # lines[i][2] = lines[i][2] / lines[i][2]
+        Y1.append(- (lines[i][2]/lines[i][1]))
+        Y2.append(- (lines[i][0]/lines[i][1])*X2[i] - (lines[i][2]/lines[i][1]))
 
+    return X1, X2, Y1, Y2
 
 
 def compute_residuals(p1, p2, F):
@@ -104,9 +136,18 @@ def compute_residuals(p1, p2, F):
         avg_residual: average absolute residual value
     """
 
-    #
-    # You code here
-    #
+    maxi = 0
+    mean = 0
+
+    for i in range(p1.shape[0]):
+        tmp = np.abs(p1[i].T @ F @ p2[i])
+        if tmp > maxi:
+            maxi = tmp
+        mean += tmp
+
+    mean /= p1.shape[0]
+
+    return maxi, mean
 
 
 def compute_epipoles(F):
@@ -119,6 +160,10 @@ def compute_epipoles(F):
         e2: (2, ) numpy array, cartesian coordinates of the epipole in image 2
     """
 
-    #
-    # You code here
-    #
+    ns1 = null_space(F.T)
+    ns2 = null_space(F)
+
+    e1 = np.array([ns1[0]/ns1[2], ns1[1]/ns1[2]])
+    e2 = np.array([ns2[0]/ns2[2], ns2[1]/ns2[2]])
+
+    return e1, e2
