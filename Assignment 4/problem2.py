@@ -36,7 +36,8 @@ def cost_nc(patch1, patch2):
     patch1_c = (patch1 - np.mean(patch1)).reshape(patch1.shape[0], 1)
     patch2_c = (patch2 - np.mean(patch2)).reshape(patch2.shape[0], 1)
 
-    cost_nc = (patch1_c.T @ patch2_c)/(np.linalg.norm(patch1_c) * np.linalg.norm(patch2_c))
+    # using 1-norm as stated in the discussion forum
+    cost_nc = (patch1_c.T @ patch2_c)/(np.linalg.norm(patch1_c, ord=1) * np.linalg.norm(patch2_c, ord=1))
     cost_nc = cost_nc[0, 0]
 
     assert np.isscalar(cost_nc)
@@ -49,7 +50,6 @@ def cost_function(patch1, patch2, alpha):
     Args:
         patch1: input patch 1 as (m, m) numpy array
         patch2: input patch 2 as (m, m) numpy array
-        input_disparity: input disparity as an integer value        
         alpha: the weighting parameter for the cost function
     Returns:
         cost_val: the calculated cost value as a floating point value

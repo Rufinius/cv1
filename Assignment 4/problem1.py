@@ -138,47 +138,19 @@ def draw_epipolars(F, p1, img):
 
         # initialize solution points
         points = None
-        # check intersections with x=0, x=W-1, y=0, y=H-1
+
+        # check intersections with x=0, x=W-1
         # using formula: p.T @ l = 0
-        # set one value of border coordinate fixed, calculate the other and see if it is a valid border intersection
+        # set one value of border coordinate fixed, calculate the other
 
         # x=0, y=?
-        y_cord = (-0*l[0, 0] - 1*l[2, 0])/l[1, 0]
-        if 0 <= y_cord <= H-1:
-            points = np.array([[0, y_cord]])
+        y_cord = (-0 * l[0, 0] - 1 * l[2, 0]) / l[1, 0]
+        X1.append(0)
+        Y1.append(y_cord)
         # x=W-1, y=?
-        y_cord = (-(W-1)*l[0, 0] - 1*l[2, 0])/l[1, 0]
-        if 0 <= y_cord <= H-1:
-            if points is None:
-                points = np.array([[W-1, y_cord]])
-            else:
-                points = np.append(points, np.array([[W-1, y_cord]]), axis=0)
-        # y=0, x=?
-        x_cord = (- 0 * l[1, 0] - 1 * l[2, 0])/l[0, 0]
-        if 0 <= x_cord <= W-1:
-            if points is None:
-                points = np.array([[x_cord, 0]])
-            else:
-                points = np.append(points, np.array([[x_cord, 0]]), axis=0)
-        # y=H-1, x=?
-        x_cord = (- (H-1)*l[1, 0] - 1*l[2, 0])/l[0, 0]
-        if 0 <= x_cord <= W-1:
-            points = np.append(points, np.array([[x_cord, H-1]]), axis=0)
-
-        # check that exactly two points are found
-        assert points.shape[0] == 2
-
-        # find point that is further left (smaller y value)
-        if points[0, 1] < points[1, 1]:
-            X1.append(points[0, 0])
-            Y1.append(points[0, 1])
-            X2.append(points[1, 0])
-            Y2.append(points[1, 1])
-        else:
-            X1.append(points[1, 0])
-            Y1.append(points[1, 1])
-            X2.append(points[0, 0])
-            Y2.append(points[0, 1])
+        y_cord = (-(W-1) * l[0, 0] - 1 * l[2, 0]) / l[1, 0]
+        X2.append(W-1)
+        Y2.append(y_cord)
 
     return np.array(X1), np.array(X2), np.array(Y1), np.array(Y2)
 
