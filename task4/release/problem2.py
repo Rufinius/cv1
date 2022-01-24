@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 
 
@@ -12,13 +13,14 @@ def cost_ssd(patch1, patch2):
         cost_ssd: the calcuated SSD cost as a floating point value
     """
 
-    #
-    # Your code goes here
-    #
-    cost_ssd = -1
+    summ = 0
+    for i in range(patch1.shape[0]):
+        for j in range(patch1.shape[1]):
+            summ += ((patch1[i, j] - patch2[i, j])**2)
 
-    assert np.isscalar(cost_ssd)
-    return cost_ssd
+    assert np.isscalar(summ)
+    # assert cost_ssd > 0
+    return summ
 
 
 def cost_nc(patch1, patch2):
@@ -32,13 +34,17 @@ def cost_nc(patch1, patch2):
         cost_nc: the calcuated NC cost as a floating point value
     """
 
-    #
-    # Your code goes here
-    #
-    cost_nc = -1
+    mean_p1 = np.mean(patch1)
+    mean_p2 = np.mean(patch2)
 
-    assert np.isscalar(cost_nc)
-    return cost_nc
+    cost_nc_1 = ((patch1.reshape((121, 1)) - mean_p1).T @ (patch2.reshape((121, 1)) - mean_p2))
+    cost_nc_2 = (np.linalg.norm(patch1.reshape((121, 1)) - mean_p1, ord=1) * np.linalg.norm(patch2.reshape((121, 1)) - mean_p2, ord=1))
+
+    cost_nc_compl = float(cost_nc_1 / cost_nc_2)
+
+    assert np.isscalar(cost_nc_compl)
+    # assert cost_nc > 0
+    return cost_nc_compl
 
 
 def cost_function(patch1, patch2, alpha):
@@ -54,10 +60,9 @@ def cost_function(patch1, patch2, alpha):
     """
     assert patch1.shape == patch2.shape 
 
-    #
-    # Your code goes here
-    #
-    cost_val = -1
+    ssd = cost_ssd(patch1, patch2)
+    nc = cost_nc(patch1, patch2)
+    cost_val = (1/(patch1.shape[0]**2)) * ssd + alpha * nc
     
     assert np.isscalar(cost_val)
     return cost_val
@@ -77,10 +82,16 @@ def pad_image(input_img, window_size, padding_mode='symmetric'):
     assert np.isscalar(window_size)
     assert window_size % 2 == 1
 
-    #
-    # Your code goes here
-    #
-    padded_img = input_img.copy()
+    if padding_mode == 'symmetric':
+        padded_img = np.pad(input_img, int(window_size/2), mode='symmetric')
+    elif padding_mode == 'constant':
+        padded_img = np.pad(input_img, int(window_size/2), mode='constant', constant_values=0)
+    elif padding_mode == 'reflect':
+        padded_img = np.pad(input_img, int(window_size/2), mode='reflect')
+    else:
+        print('ERROR: specified padding mode not known used constant instead')
+        padded_img = np.pad(input_img, int(window_size / 2), mode='constant', constant_values=0)
+
 
     return padded_img
 
@@ -104,10 +115,21 @@ def compute_disparity(padded_img_l, padded_img_r, max_disp, window_size, alpha):
     assert max_disp > 0
     assert window_size % 2 == 1
 
-    #
-    # Your code goes here
-    #
-    disparity = padded_img_l.copy()
+    disparity = np.zeros((padded_img_l.shape[0]-window_size+1, padded_img_l.shape[1]-window_size+1))
+
+    for i in range(padded_img_l.shape[0] - window_size + 1):
+        for j in range(padded_img_l.shape[1] - window_size + 1):
+            min_cost = float('inf')
+            for k in range(max_disp):
+                if j+k+window_size > 265 or i+window_size > 118:
+                    break
+                cost = cost_function(padded_img_r[i:i+window_size:, j:j+window_size:],
+                                     padded_img_l[i:i+window_size:, j+k:j+k+window_size:], alpha)
+                if cost < min_cost:
+                    min_cost = cost
+            disparity[i, j] = min_cost
+            min_cost = float('inf')
+
 
     assert disparity.ndim == 2
     return disparity
@@ -126,10 +148,11 @@ def compute_aepe(disparity_gt, disparity_res):
     assert disparity_res.ndim == 2 
     assert disparity_gt.shape == disparity_res.shape
 
-    #
-    # Your code goes here
-    #
-    aepe = -1
+    disparity_gt = disparity_gt.reshape((disparity_gt.shape[0]*disparity_gt.shape[1], 1))
+    disparity_res = disparity_res.reshape((disparity_res.shape[0]*disparity_res.shape[1], 1))
+
+    aepe = 1/disparity_gt.shape[0]*disparity_gt.shape[1] * np.linalg.norm(disparity_gt-disparity_res, ord=1)
+
 
     assert np.isscalar(aepe)
     return aepe

@@ -117,7 +117,7 @@ def problem2():
     disparity_gt = disparity_read("data/p2_gt.png")
    
     padded_img_l = p2.pad_image(im_left, window_size, padding_mode='symmetric')
-    padded_img_r = p2.pad_image(im_right, window_size, padding_mode='symmetric') 
+    padded_img_r = p2.pad_image(im_right, window_size, padding_mode='symmetric')
 
     disparity_res = p2.compute_disparity(padded_img_l, padded_img_r, max_disp, window_size, alpha)
     aepe = p2.compute_aepe(disparity_gt, disparity_res)
@@ -132,5 +132,5 @@ def problem2():
     plt.show()
 
 if __name__ == "__main__":
-    problem1()
-    #problem2()
+    #problem1()
+    problem2()
